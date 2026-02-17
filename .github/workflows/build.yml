@@ -1,0 +1,46 @@
+name: Build Android APK
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # 1. Prepara o Python e dependências do sistema Linux
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential libtool libtool-bin autoconf automake pkg-config \
+            git python3-dev ffmpeg libsdl2-dev libsdl2-image-dev \
+            libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev \
+            libavformat-dev libavcodec-dev zlib1g-dev libncurses5 libstdc++6 \
+            zlib1g-dev openjdk-17-jdk unzip zip
+
+      # 2. Instala o Buildozer
+      - name: Install Buildozer
+        run: |
+          pip install --upgrade pip
+          pip install buildozer cython
+
+      # 3. Roda a compilação (Demora cerca de 15-20 min)
+      - name: Build with Buildozer
+        run: |
+          yes | buildozer android debug
+
+      # 4. Salva o APK para você baixar
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: escape-hero-apk
+          path: bin/*.apk
