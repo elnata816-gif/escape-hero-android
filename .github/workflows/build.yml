@@ -8,28 +8,26 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 180  # ⭐ AUMENTADO: Build Android pode levar mais de 2 horas
+    timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@v4  # ⭐ ATUALIZADO: v4 é mais recente e eficiente
+      - uses: actions/checkout@v4
 
-      # 1. Configurar Java/JDK (NECESSÁRIO para Android)
-      - name: Set up JDK 11
-        uses: actions/setup-java@v4  # ⭐ ATUALIZADO: v4
+      # 1. Configurar Java 17 (Recomendado para SDKs novos)
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
-          cache: 'gradle'
 
-      # 2. Configurar Python
+      # 2. Configurar Python 3.10 (Mais estável para build)
       - name: Set up Python
-        uses: actions/setup-python@v5  # ⭐ ATUALIZADO: v5 (mais recente)
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          cache: 'pip'
 
-      # 3. Instalar Dependências do Sistema (Linux)
-      # ⭐ CRÍTICO: Adicionar liblzma-dev e libuuid-dev para compilação de módulos Python
+      # 3. Instalar Dependências do Sistema (Linux Ubuntu 24.04)
+      # ADICIONADO: autopoint e libltdl-dev para corrigir erro de macros
       - name: Install System Dependencies
         run: |
           sudo apt-get update
@@ -38,119 +36,32 @@ jobs:
             git python3-dev ffmpeg libsdl2-dev libsdl2-image-dev \
             libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev \
             libavformat-dev libavcodec-dev zlib1g-dev libncurses6 libncurses-dev \
-            libstdc++6 libltdl-dev gettext unzip zip wget \
+            libstdc++6 libltdl-dev gettext autopoint unzip zip wget \
             liblzma-dev libuuid-dev libffi-dev libssl-dev
 
-      # 4. Instalar Buildozer, Cython e dependências Python
+      # 4. Instalar Buildozer e Dependências Python
       - name: Install Python Dependencies
         run: |
           pip install --upgrade pip setuptools wheel
-          pip install buildozer cython kivy pygame-ce
+          pip install buildozer cython==0.29.33
 
-      # 5. Cache Buildozer para acelerar builds
+      # 5. Cache Buildozer (Alterado v2 para forçar limpeza)
       - name: Cache Buildozer
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.buildozer
-            ~/.android
-          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            buildozer-${{ runner.os }}-
+          path: .buildozer
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v2
 
-      # 6. Setup Android SDK e NDK (NECESSÁRIO)
-      - name: Setup Android SDK and NDK
-        run: |
-          mkdir -p $HOME/android-sdk
-          cd $HOME/android-sdk
-          
-          # Download Android SDK Command-line Tools (versão mais recente)
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          unzip -q commandlinetools-linux-9477386_latest.zip
-          rm commandlinetools-linux-9477386_latest.zip
-          
-          # Organizar estrutura
-          mkdir -p cmdline-tools/latest
-          mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
-          
-          # Aceitar licenças automaticamente
-          yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          
-          # Instalar componentes Android necessários
-          $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager \
-            "platforms;android-31" \
-            "build-tools;31.0.0" \
-            "ndk;25.1.8937393" \
-            "platform-tools"
-        timeout-minutes: 30
-
-      # 7. Definir Variáveis de Ambiente
-      - name: Set Environment Variables
-        run: |
-          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/25.1.8937393" >> $GITHUB_ENV
-          echo "$HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
-
-      # 8. Verificar Configuração
-      - name: Verify Android Setup
-        run: |
-          echo "========== VERIFICAÇÃO DE CONFIGURAÇÃO =========="
-          echo "Android SDK: $ANDROID_HOME"
-          echo "Android NDK: $ANDROID_NDK_ROOT"
-          echo "Java Version:"
-          java -version
-          echo "Python Version:"
-          python --version
-          echo "Android SDK Contents:"
-          ls -la $ANDROID_HOME/
-          echo "=================================================="
-
-      # 9. Compilar com Buildozer
+      # 6. Compilar com Buildozer
+      # REMOVIDO "yes |" pois já configuramos aceitação automática no spec
       - name: Build APK with Buildozer
         run: |
-          buildozer android debug 2>&1 | tee build.log
-        timeout-minutes: 150
-        env:
-          # Evitar problemas de memória
-          _JAVA_OPTIONS: "-Xmx4096m"
+          buildozer android debug
 
-      # 10. Verificar se APK foi criado
-      - name: Check if APK was created
-        run: |
-          if [ -f bin/*.apk ]; then
-            echo "✅ APK criado com sucesso!"
-            ls -lh bin/*.apk
-          else
-            echo "❌ Erro: APK não foi criado"
-            echo "=== Últimas 100 linhas do log ==="
-            tail -100 build.log
-            exit 1
-          fi
-
-      # 11. Upload do APK como artefato
+      # 7. Upload do APK
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: escape-hero-apk
           path: bin/*.apk
           if-no-files-found: error
-          compression-level: 6
-        if: success()
-
-      # 12. Salvar logs de erro para diagnóstico
-      - name: Upload Build Log (on failure)
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs
-          path: build.log
-        if: failure()
-
-      # 13. Criar Release (Opcional - para lançar automaticamente)
-      - name: Create Release
-        uses: softprops/action-gh-release@v2  # ⭐ ATUALIZADO: v2
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: bin/*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
