@@ -28,6 +28,7 @@ version = 0.1
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
 # FIX: Usamos pygame-ce que é compatível com Python 3.11+
+# IMPORTANTE: Remover módulos problemáticos que serão desabilitados abaixo
 requirements = python3,pygame-ce
 
 # (str) Custom source folders for requirements
@@ -39,7 +40,7 @@ requirements = python3,pygame-ce
 orientation = portrait
 
 # (list) Permissions
-android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE
+android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE
 
 # (int) Target Android API, should be as high as possible.
 # FIX: Alterado para 31 (Android 12) para maior estabilidade de compilação
@@ -57,7 +58,7 @@ android.minapi = 21
 # (list) The Android archs to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
 # In past, was `android.arch` as we weren't supporting builds for multiple archs.
 # FIX: Descomentado para garantir compatibilidade com celulares novos e antigos
-android.archs = arm64-v8a, armeabi-v7a
+android.archs = arm64-v8a,armeabi-v7a
 
 # (bool) enables Android auto backup feature (Android API >=23)
 android.allow_backup = True
@@ -106,8 +107,8 @@ android.accept_sdk_license = True
 #android.whitelist_src =
 
 # (list) List of Java .jar files to add to the libs so that pyjnius can access
-their classes. Don't add jars that you do not need, since extra jars can slow
-down the build process. Allows wildcards matching, for example:
+# their classes. Don't add jars that you do not need, since extra jars can slow
+# down the build process. Allows wildcards matching, for example:
 # OUYA-ODK/libs/*.jar
 #android.add_jars = foo.jar,bar.jar,path/to/more/*.jar
 
@@ -131,12 +132,19 @@ down the build process. Allows wildcards matching, for example:
 #
 
 # (str) extra command line arguments to pass when invoking pythonforandroid.toolchain
-# FIX: Excluir módulos problemáticos que não compilam para Android
-# _lzma: Não está disponível no NDK
-# _uuid: Requer libuuid que não é fornecida pelo NDK
-# grp: Não é um módulo padrão do Android
-# readline, spwd: Não disponíveis em Android
-p4a.extra_args = --ignore-setup-py --disable-module grp --disable-module _lzma --disable-module _uuid --disable-module readline --disable-module spwd
+# FIX CRÍTICO: Desabilitar módulos que não compilam para Android
+# Estes módulos causam falhas na compilação:
+# - grp: Módulo Unix específico (getgrent, endgrent não existem em Android)
+# - _lzma: Requer lzma.h que não está disponível no NDK padrão
+# - _uuid: Requer libuuid que não é fornecida pelo NDK
+# - readline: Sistema de leitura de linha não disponível em Android
+# - spwd: Banco de dados de senhas cifradas (Unix específico)
+# - _gdbm: DBM GNU (não disponível em Android)
+# - nis: NIS (Network Information Service - não disponível em Android)
+p4a.extra_args = --ignore-setup-py --disable-module grp --disable-module _lzma --disable-module _uuid --disable-module readline --disable-module spwd --disable-module _gdbm --disable-module nis
+
+# Aumentar nível de compilação para evitar warnings que virão erros
+p4a.bootstrap = sdl2
 
 [buildozer]
 
