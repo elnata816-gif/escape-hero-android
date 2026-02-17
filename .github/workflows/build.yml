@@ -26,8 +26,9 @@ jobs:
             git python3-dev ffmpeg libsdl2-dev libsdl2-image-dev \
             libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev \
             libavformat-dev libavcodec-dev zlib1g-dev libncurses6 libncurses-dev libstdc++6 \
+            libltdl-dev gettext \
             openjdk-17-jdk unzip zip
-
+            
       # 3. Instalar Buildozer e Cython
       - name: Install Buildozer
         run: |
