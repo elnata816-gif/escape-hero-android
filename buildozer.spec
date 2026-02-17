@@ -19,7 +19,7 @@ source.include_exts = py,png,jpg,kv,atlas,txt
 version = 0.1
 
 # (list) Application requirements
-# Usamos pygame-ce (Community Edition) que é mais estável para Android
+# Pygame-ce é a versão recomendada pela comunidade para Android
 requirements = python3,pygame-ce
 
 # (list) Supported orientations
@@ -28,20 +28,19 @@ orientation = portrait
 # (list) Permissions
 android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE
 
-# (int) Target Android API, should be as high as possible.
+# (int) Target Android API
 android.api = 31
 
-# (int) Minimum API your APK / AAB will support.
+# (int) Minimum API your APK will support
 android.minapi = 21
 
-# (int) Android NDK API to use. This is the minimum API your app will support.
+# (int) Android NDK API to use
 android.ndk_api = 21
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 android.private_storage = True
 
-# (bool) If True, then automatically accept SDK license agreements.
-# ISSO É CRUCIAL PARA AUTOMAÇÃO
+# (bool) Accept SDK license agreements automatically
 android.accept_sdk_license = True
 
 # (list) The Android archs to build for.
@@ -56,17 +55,17 @@ android.add_packaging_options = "exclude 'META-INF/common.kotlin_module'", "excl
 # (str) Bootstrap to use for android builds
 p4a.bootstrap = sdl2
 
-# (str) extra command line arguments to pass when invoking pythonforandroid.toolchain
-# Desabilitamos módulos que não compilam nativamente no Android para evitar erros
+# (str) Extra command line arguments
+# Ignoramos setup.py e desabilitamos módulos inúteis no Android que causam erro de compilação
 p4a.extra_args = --ignore-setup-py --disable-module grp --disable-module _lzma --disable-module _uuid --disable-module readline --disable-module spwd --disable-module _gdbm --disable-module nis
 
 # -----------------------------------------------------------------------------
-# CORREÇÃO PARA UBUNTU 24.04 (GITHUB ACTIONS NOVO)
+# CRUCIAL PARA UBUNTU 24.04 (GITHUB ACTIONS)
 # -----------------------------------------------------------------------------
-# Força o uso da versão mais recente do sistema de build, que corrige erros de macros (libffi/autoconf)
+# Usa a versão de desenvolvimento do python-for-android que corrige erros de macros
 p4a.branch = master
 
-# iOS specific
+# iOS specific (apenas defaults)
 ios.kivy_ios_url = https://github.com/kivy/kivy-ios
 ios.kivy_ios_branch = master
 ios.ios_deploy_url = https://github.com/phonegap/ios-deploy
