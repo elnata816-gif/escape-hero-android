@@ -1,4 +1,5 @@
 name: Build Android APK
+
 on:
   push:
     branches: [ main ]
@@ -7,42 +8,114 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 150  # ⭐ CRÍTICO: Build Android leva muito tempo!
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3  # ⭐ Usar v3 ou v4 (v2 está desatualizada)
 
-      # 1. Configurar Python
+      # 1. Configurar Java/JDK (NECESSÁRIO para Android)
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      # 2. Configurar Python
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4  # ⭐ Atualizar para v4
         with:
           python-version: '3.10'
 
-      # 2. Instalar Dependências do Sistema (Linux)
-      - name: Install Dependencies
+      # 3. Instalar Dependências do Sistema (Linux)
+      - name: Install System Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             build-essential libtool libtool-bin autoconf automake pkg-config \
             git python3-dev ffmpeg libsdl2-dev libsdl2-image-dev \
             libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev \
-            libavformat-dev libavcodec-dev zlib1g-dev libncurses6 libncurses-dev libstdc++6 \
-            libltdl-dev gettext \
-            openjdk-17-jdk unzip zip
-            
-      # 3. Instalar Buildozer e Cython
-      - name: Install Buildozer
-        run: |
-          pip install --upgrade pip
-          pip install buildozer cython
+            libavformat-dev libavcodec-dev zlib1g-dev libncurses6 libncurses-dev \
+            libstdc++6 libltdl-dev gettext unzip zip wget
 
-      # 4. Compilar (SEM O YES |)
-      - name: Build with Buildozer
+      # 4. Instalar Buildozer, Cython e dependências Python
+      - name: Install Python Dependencies
         run: |
-          buildozer android debug
+          pip install --upgrade pip setuptools wheel
+          pip install buildozer cython kivy
 
-      # 5. Salvar o APK para download
-      - name: Upload APK
+      # 5. Setup Android SDK e NDK (NECESSÁRIO)
+      - name: Setup Android SDK and NDK
+        run: |
+          mkdir -p $HOME/android-sdk
+          cd $HOME/android-sdk
+          
+          # Download Android SDK Command-line Tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip -q commandlinetools-linux-9477386_latest.zip
+          rm commandlinetools-linux-9477386_latest.zip
+          
+          # Organizar estrutura
+          mkdir -p cmdline-tools/latest
+          mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
+          
+          # Aceitar licenças
+          yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          
+          # Instalar componentes Android
+          $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager \
+            "platforms;android-31" \
+            "build-tools;31.0.0" \
+            "ndk;25.1.8937393" \
+            "platform-tools"
+
+      # 6. Definir Variáveis de Ambiente
+      - name: Set Environment Variables
+        run: |
+          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/25.1.8937393" >> $GITHUB_ENV
+          echo "$HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
+
+      # 7. Verificar Configuração
+      - name: Verify Android Setup
+        run: |
+          echo "Android SDK: $ANDROID_HOME"
+          echo "Android NDK: $ANDROID_NDK_ROOT"
+          ls -la $ANDROID_HOME/
+
+      # 8. Compilar com Buildozer
+      - name: Build APK with Buildozer
+        run: |
+          buildozer android debug 2>&1 | tee build.log
+        timeout-minutes: 120
+
+      # 9. Verificar se APK foi criado
+      - name: Check if APK was created
+        run: |
+          if [ -f bin/*.apk ]; then
+            echo "✅ APK criado com sucesso!"
+            ls -lh bin/*.apk
+          else
+            echo "❌ Erro: APK não foi criado"
+            echo "=== Últimas linhas do log ==="
+            tail -50 build.log
+            exit 1
+          fi
+
+      # 10. Upload do APK como artefato
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: escape-hero-apk
           path: bin/*.apk
+          if-no-files-found: error
+        if: always()
+
+      # 11. Criar Release (Opcional - para lançar automaticamente)
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: bin/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
