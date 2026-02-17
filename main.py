@@ -1,6 +1,21 @@
 import pygame
 import sys
 import os
+from pathlib import Path
+
+# --- CONFIGURAÇÃO DE CAMINHOS ANDROID ---
+def get_data_dir():
+    """Retorna o diretório correto para salvar dados em Android ou Desktop"""
+    if os.path.exists('/data/data'):  # Detecta se está em Android
+        app_storage = Path.home() / 'Escape_Hero_Data'
+        app_storage.mkdir(exist_ok=True)
+        return str(app_storage)
+    else:
+        # Desktop: salva no mesmo diretório do app
+        return os.getcwd()
+
+DATA_DIR = get_data_dir()
+PROGRESS_FILE = os.path.join(DATA_DIR, "progress.txt")
 
 # --- Constantes e Configurações ---
 SCREEN_WIDTH = 700
@@ -315,21 +330,24 @@ class Game:
                 })
 
     def load_progress(self):
-        if os.path.exists("progress.txt"):
-            try:
-                with open("progress.txt", "r") as f:
-                    self.max_unlocked_index = int(f.read())
-            except:
-                self.max_unlocked_index = 0
-        else:
+        """Carrega o progresso salvo de forma segura (Android-compatível)"""
+        try:
+            if os.path.exists(PROGRESS_FILE):
+                with open(PROGRESS_FILE, "r") as f:
+                    content = f.read().strip()
+                    if content:
+                        self.max_unlocked_index = int(content)
+        except Exception as e:
+            print(f"Erro ao carregar progresso: {e}")
             self.max_unlocked_index = 0
 
     def save_progress(self):
+        """Salva o progresso de forma segura (Android-compatível)"""
         try:
-            with open("progress.txt", "w") as f:
+            with open(PROGRESS_FILE, "w") as f:
                 f.write(str(self.max_unlocked_index))
-        except:
-            pass
+        except Exception as e:
+            print(f"Erro ao salvar progresso: {e}")
 
     def load_level(self, level_name):
         self.current_level_name = level_name
