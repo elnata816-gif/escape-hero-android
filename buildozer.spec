@@ -19,7 +19,7 @@ source.include_exts = py,png,jpg,kv,atlas,txt
 version = 0.1
 
 # (list) Application requirements
-# Pygame-ce é a melhor opção atualmente
+# Usamos pygame-ce (Community Edition)
 requirements = python3,pygame-ce
 
 # (list) Supported orientations
@@ -56,8 +56,13 @@ android.add_packaging_options = "exclude 'META-INF/common.kotlin_module'", "excl
 p4a.bootstrap = sdl2
 
 # (str) Extra command line arguments
-# Ignoramos setup.py e desabilitamos módulos inúteis no Android
+# Ignora setup.py e desabilita módulos inúteis
 p4a.extra_args = --ignore-setup-py --disable-module grp --disable-module _lzma --disable-module _uuid --disable-module readline --disable-module spwd --disable-module _gdbm --disable-module nis
+
+# -----------------------------------------------------------------------------
+# CORREÇÃO: REMOVIDO "p4a.branch = master"
+# Voltamos para a versão estável que é compatível com Ubuntu 22.04
+# -----------------------------------------------------------------------------
 
 # iOS specific (defaults)
 ios.kivy_ios_url = https://github.com/kivy/kivy-ios
