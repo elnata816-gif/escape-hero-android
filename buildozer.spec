@@ -19,7 +19,7 @@ source.include_exts = py,png,jpg,kv,atlas,txt
 version = 0.1
 
 # (list) Application requirements
-# Pygame-ce é a versão recomendada pela comunidade para Android
+# Pygame-ce é a melhor opção atualmente
 requirements = python3,pygame-ce
 
 # (list) Supported orientations
@@ -56,16 +56,10 @@ android.add_packaging_options = "exclude 'META-INF/common.kotlin_module'", "excl
 p4a.bootstrap = sdl2
 
 # (str) Extra command line arguments
-# Ignoramos setup.py e desabilitamos módulos inúteis no Android que causam erro de compilação
+# Ignoramos setup.py e desabilitamos módulos inúteis no Android
 p4a.extra_args = --ignore-setup-py --disable-module grp --disable-module _lzma --disable-module _uuid --disable-module readline --disable-module spwd --disable-module _gdbm --disable-module nis
 
-# -----------------------------------------------------------------------------
-# CRUCIAL PARA UBUNTU 24.04 (GITHUB ACTIONS)
-# -----------------------------------------------------------------------------
-# Usa a versão de desenvolvimento do python-for-android que corrige erros de macros
-p4a.branch = master
-
-# iOS specific (apenas defaults)
+# iOS specific (defaults)
 ios.kivy_ios_url = https://github.com/kivy/kivy-ios
 ios.kivy_ios_branch = master
 ios.ios_deploy_url = https://github.com/phonegap/ios-deploy
