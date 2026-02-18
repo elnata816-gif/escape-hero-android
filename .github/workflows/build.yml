@@ -8,38 +8,37 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Aumentamos o tempo limite para evitar cortes abruptos
+    # Tempo limite aumentado para evitar cortes
     timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Configurar Java 17 (Obrigatório para Android builds atuais)
+      # 1. Configurar Java 17
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # 2. Configurar Python 3.10 (Versão mais estável para o Buildozer)
+      # 2. Configurar Python 3.10
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      # 3. Instalar Dependências do Sistema (Ajustado para Ubuntu 24.04)
-      # MUDANÇA CRÍTICA: 'libuuid-dev' virou 'uuid-dev'
+      # 3. Instalar Dependências do Sistema (CORRIGIDO PARA UBUNTU 24.04)
+      # MUDANÇA AQUI: 'libuuid-dev' foi trocado por 'uuid-dev'
       - name: Install System Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential libtool autoconf automake pkg-config \
-            git zip unzip wget \
-            libffi-dev libssl-dev \
-            libncurses-dev libncurses6 \
-            libltdl-dev gettext autopoint \
-            uuid-dev zlib1g-dev \
-            ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev
+            build-essential libtool libtool-bin autoconf automake pkg-config \
+            git python3-dev ffmpeg libsdl2-dev libsdl2-image-dev \
+            libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev \
+            libavformat-dev libavcodec-dev zlib1g-dev libncurses6 libncurses-dev \
+            libstdc++6 libltdl-dev gettext autopoint unzip zip wget \
+            liblzma-dev uuid-dev libffi-dev libssl-dev
 
       # 4. Instalar Buildozer e Dependências Python
       - name: Install Python Dependencies
@@ -48,16 +47,14 @@ jobs:
           # Fixamos o Cython numa versão compatível
           pip install buildozer cython==0.29.33
 
-      # 5. Cache do Buildozer (Para não baixar o SDK toda vez)
-      # Mudamos a chave para 'v3' para forçar uma limpeza do cache anterior que deu erro
+      # 5. Cache do Buildozer
       - name: Cache Buildozer
         uses: actions/cache@v4
         with:
           path: .buildozer
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v3
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v4
 
       # 6. Compilar
-      # O 'yes' foi removido porque já configuramos a aceitação no buildozer.spec
       - name: Build APK with Buildozer
         run: |
           buildozer android debug
