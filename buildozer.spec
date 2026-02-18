@@ -60,9 +60,8 @@ p4a.bootstrap = sdl2
 p4a.extra_args = --ignore-setup-py --disable-module grp --disable-module _lzma --disable-module _uuid --disable-module readline --disable-module spwd --disable-module _gdbm --disable-module nis
 
 # -----------------------------------------------------------------------------
-# CRUCIAL PARA UBUNTU 24.04 (GITHUB ACTIONS)
+# CRUCIAL: CORREÇÃO PARA O AMBIENTE NOVO DO GITHUB
 # -----------------------------------------------------------------------------
-# Usa a versão de desenvolvimento do python-for-android que corrige erros de macros
 p4a.branch = master
 
 # iOS specific (apenas defaults)
