@@ -20,7 +20,7 @@ version = 0.1
 
 # (list) Application requirements
 # Usamos pygame-ce (Community Edition)
-requirements = python3,pygame-ce
+requirements = python3,kivy
 
 # (list) Supported orientations
 orientation = portrait
