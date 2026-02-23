@@ -13,14 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Configurar Java 11
-      - name: Set up JDK 11
+      # 1. Configurar Java 17 (Obrigatório para as ferramentas mais recentes do SDK)
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
 
-      # 2. Configurar Python 3.10
+      # 2. Configurar Python 3.10 (Host Python)
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -37,18 +37,18 @@ jobs:
             libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
             libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
 
-      # 4. Instalar Cython Antigo (Obrigatório)
+      # 4. Instalar Cython Moderno e Virtualenv
       - name: Install Buildozer & Dependencies
         run: |
           pip install --upgrade pip setuptools wheel virtualenv
-          pip install buildozer cython==0.29.33
+          pip install buildozer "cython<3.1.0"
 
-      # 5. Limpar Cache Anterior
+      # 5. Limpar Cache Anterior (Para apagar os resquícios do Kivy velho)
       - name: Cache Buildozer Global Directory
         uses: actions/cache@v4
         with:
           path: .buildozer
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v9
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v10
 
       # 6. Compilar o APK
       - name: Build with Buildozer
