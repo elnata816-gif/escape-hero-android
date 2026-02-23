@@ -1,4 +1,10 @@
 import os
+# Configuração para rodar no Desktop com formato de celular (em pé)
+from kivy.config import Config
+
+Config.set('graphics', 'width', '450')
+Config.set('graphics', 'height', '800')
+
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -6,72 +12,175 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import NumericProperty, BooleanProperty, StringProperty
+from kivy.properties import NumericProperty, BooleanProperty
 from kivy.graphics import Color, RoundedRectangle, Line, Ellipse, Rectangle
 from kivy.clock import Clock
 from kivy.storage.jsonstore import JsonStore
 from kivy.metrics import dp, sp
 
+# Tipos de Peças
+TYPE_HERO = 'hero'
+TYPE_V = 'v'
+TYPE_H = 'h'
+TYPE_S = 's'
+
 # --- DEFINIÇÃO DOS NÍVEIS ---
-# (Matrizes idênticas à sua versão original)
 LEVELS = {
+    # --- NÍVEIS FÁCEIS ---
     "Nível 1 (Fácil)": [
-        ('hero', [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('s', [[0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('s', [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('s', [[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('s', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('h', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('h', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0]]),
-        ('h', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0]]),
-        ('h', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0]]),
-        ('h', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1]]),
+        (TYPE_HERO, [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1]]),
     ],
     "Nível 2 (Fácil)": [
-        ('hero', [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('h', [[0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('h', [[0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('h', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('h', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0], [0, 0, 0, 0]]),
-        ('h', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0]]),
-        ('s', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0]]),
-        ('s', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0]]),
-        ('s', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0]]),
-        ('s', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]),
+        (TYPE_HERO, [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]),
     ],
-    "Nível 3 (Médio)": [
-        ('hero', [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('h', [[0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('h', [[0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('h', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('v', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]]),
-        ('v', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]]),
-        ('s', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
-        ('s', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0]]),
-        ('s', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0]]),
-        ('s', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]),
+    "Nível 3 (Fácil)": [
+        (TYPE_HERO, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 1, 1]]),
+        (TYPE_S, [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0]]),
     ],
-    "Nível 4 (Difícil)": [
-        ('hero', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]]),
-        ('s', [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('h', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0]]),
-        ('h', [[0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('h', [[0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('s', [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        ('v', [[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0]]),
-        ('v', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 0]]),
-        ('s', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0]]),
-        ('s', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]),
-        ('h', [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0]]),
+    "Nível 4 (Fácil)": [
+        (TYPE_HERO, [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0]]),
+        (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]),
+    ],
+
+    # --- NÍVEIS MÉDIOS ---
+    "Nível 5 (Médio)": [
+        (TYPE_HERO, [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]]),
+        (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]),
+    ],
+    "Nível 6 (Médio)": [
+        (TYPE_HERO, [[0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0]]),
+    ],
+    "Nível 7 (Médio)": [
+        (TYPE_HERO, [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_V, [[0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
+        (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]]),
+        (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 1]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0]]),
+    ],
+    "Nível 8 (Médio)": [
+        (TYPE_HERO, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 1, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1]]),
+    ],
+
+    # --- NÍVEIS DIFÍCEIS ---
+    "Nível 9 (Difícil)": [
+        (TYPE_HERO, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 1, 1]]),
+        (TYPE_V, [[1, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0]]),
+    ],
+    "Nível 10 (Difícil)": [
+        (TYPE_HERO, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0]]),
+        (TYPE_H, [[0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0]]),
+    ],
+    "Nível 11 (Difícil)": [
+        (TYPE_HERO, [[0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_V, [[1, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 1], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]),
+    ],
+    "Nível 12 (Difícil)": [
+        (TYPE_HERO, [[0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_V, [[1, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_V, [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]]),
+        (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 1]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0]]),
     ]
 }
 
-# Interface em KV Language (Muito mais rápido e leve que desenhar pixel a pixel)
+# --- INTERFACE VISUAL (KV LANGUAGE) ---
+# Aqui configuramos as 3 colunas de dificuldade no Menu
 KV = '''
-#:import get_color_from_hex kivy.utils.get_color_from_hex
-
 <MenuButton@Button>:
-    font_size: sp(18)
+    font_size: sp(15)
     bold: True
     background_normal: ''
     background_color: (1,1,1,1) if not self.disabled else (0.8, 0.8, 0.8, 1)
@@ -97,21 +206,77 @@ ScreenManager:
             size: self.size
     BoxLayout:
         orientation: 'vertical'
-        padding: dp(20)
-        spacing: dp(20)
+        padding: dp(15)
+        spacing: dp(15)
         Label:
             text: "ESCAPE HERO"
-            font_size: sp(45)
+            font_size: sp(40)
             bold: True
             color: 0.16, 0.5, 0.72, 1
-            size_hint_y: 0.2
-        ScrollView:
-            GridLayout:
-                id: level_grid
-                cols: 1
-                spacing: dp(15)
-                size_hint_y: None
-                height: self.minimum_height
+            size_hint_y: 0.15
+
+        # Layout de 3 Colunas
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: dp(10)
+            size_hint_y: 0.85
+
+            # Coluna 1: FÁCIL
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: dp(10)
+                Label:
+                    text: 'FÁCIL'
+                    font_size: sp(18)
+                    bold: True
+                    color: 0.18, 0.8, 0.44, 1  # Verde
+                    size_hint_y: None
+                    height: dp(30)
+                ScrollView:
+                    GridLayout:
+                        id: grid_facil
+                        cols: 1
+                        spacing: dp(10)
+                        size_hint_y: None
+                        height: self.minimum_height
+
+            # Coluna 2: MÉDIO
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: dp(10)
+                Label:
+                    text: 'MÉDIO'
+                    font_size: sp(18)
+                    bold: True
+                    color: 0.94, 0.76, 0.05, 1  # Amarelo
+                    size_hint_y: None
+                    height: dp(30)
+                ScrollView:
+                    GridLayout:
+                        id: grid_medio
+                        cols: 1
+                        spacing: dp(10)
+                        size_hint_y: None
+                        height: self.minimum_height
+
+            # Coluna 3: DIFÍCIL
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: dp(10)
+                Label:
+                    text: 'DIFÍCIL'
+                    font_size: sp(18)
+                    bold: True
+                    color: 0.9, 0.29, 0.23, 1  # Vermelho
+                    size_hint_y: None
+                    height: dp(30)
+                ScrollView:
+                    GridLayout:
+                        id: grid_dificil
+                        cols: 1
+                        spacing: dp(10)
+                        size_hint_y: None
+                        height: self.minimum_height
 
 <GameScreen@Screen>:
     name: 'game'
@@ -159,7 +324,6 @@ class Piece(Widget):
     def __init__(self, p_type, matrix, **kwargs):
         super().__init__(**kwargs)
         self.p_type = p_type
-        # Cores convertidas para padrão Kivy (0-1)
         self.colors = {
             'hero': (135 / 255, 206 / 255, 250 / 255, 1),
             'v': (189 / 255, 195 / 255, 199 / 255, 1),
@@ -167,10 +331,9 @@ class Piece(Widget):
             's': (255 / 255, 255 / 255, 0, 1)
         }
 
-        # Converte a matriz do pygame para coordenadas (Kivy 0,0 é embaixo na esquerda)
         self.w, self.h, py_x, py_y = self.extract_geometry(matrix)
         self.grid_x = py_x
-        self.grid_y = 5 - py_y - self.h  # Inverte o Y para o padrão Kivy
+        self.grid_y = 5 - py_y - self.h
 
         self.dragging = False
         self.drag_axis = None
@@ -213,6 +376,8 @@ class Piece(Widget):
                     self.max_drag_y = min(self.max_drag_y, p.grid_y - self.h)
 
     def update_rect(self):
+        if not self.parent: return
+
         cs = self.parent.cell_size
         self.size = (self.w * cs, self.h * cs)
         self.pos = (self.parent.x + self.grid_x * cs, self.parent.y + self.grid_y * cs)
@@ -220,13 +385,13 @@ class Piece(Widget):
         self.canvas.clear()
         with self.canvas:
             if self.dragging:
-                Color(0, 0, 0, 0.2)  # Sombra
+                Color(0, 0, 0, 0.2)
                 RoundedRectangle(pos=(self.x + 5, self.y - 5), size=self.size, radius=[8])
 
             Color(*self.colors[self.p_type])
             RoundedRectangle(pos=self.pos, size=self.size, radius=[8])
 
-            Color(1, 1, 1, 1)  # Borda Branca
+            Color(1, 1, 1, 1)
             Line(rounded_rectangle=(self.x, self.y, self.width, self.height, 8), width=1.5)
 
             if self.p_type == 'hero':
@@ -244,15 +409,16 @@ class Piece(Widget):
             self.start_grid_y = self.grid_y
             self.calculate_bounds(self.parent.pieces)
 
-            # Traz a peça para frente visualmente
-            self.parent.remove_widget(self)
-            self.parent.add_widget(self)
+            board = self.parent
+            board.remove_widget(self)
+            board.add_widget(self)
+
             self.update_rect()
             return True
         return False
 
     def on_touch_move(self, touch):
-        if touch.grab_current is self:
+        if touch.grab_current is self and self.parent:
             cs = self.parent.cell_size
             dx = (touch.x - self.touch_start_pos[0]) / cs
             dy = (touch.y - self.touch_start_pos[1]) / cs
@@ -286,7 +452,8 @@ class Piece(Widget):
             self.grid_x = new_x
             self.grid_y = new_y
             self.update_rect()
-            self.parent.check_win()
+            if self.parent:
+                self.parent.check_win()
             return True
         return False
 
@@ -296,11 +463,11 @@ class BoardWidget(Widget):
         super().__init__(**kwargs)
         self.pieces = []
         self.cell_size = 100
+        self.bind(pos=self.update_layout, size=self.update_layout)
 
-    def on_size(self, *args):
+    def update_layout(self, *args):
         if self.parent:
-            # Mantém a proporção exata para telas de celular
-            self.cell_size = min(self.parent.width / 4.2, self.parent.height / 5.2)
+            self.cell_size = min(self.parent.width / 4.5, self.parent.height / 5.5)
             self.size = (self.cell_size * 4, self.cell_size * 5)
             self.draw_board()
             for p in self.pieces:
@@ -309,14 +476,11 @@ class BoardWidget(Widget):
     def draw_board(self):
         self.canvas.before.clear()
         with self.canvas.before:
-            # Fundo escuro do tabuleiro
             Color(47 / 255, 54 / 255, 64 / 255, 1)
             RoundedRectangle(pos=(self.x - dp(10), self.y - dp(10)), size=(self.width + dp(20), self.height + dp(20)),
                              radius=[15])
-            # Fundo claro
             Color(1, 1, 1, 1)
             RoundedRectangle(pos=self.pos, size=self.size, radius=[10])
-            # Porta de Saída (Verde) na parte inferior
             Color(46 / 255, 204 / 255, 113 / 255, 1)
             Rectangle(pos=(self.x + self.cell_size, self.y - dp(10)), size=(self.cell_size * 2, dp(10)))
 
@@ -327,7 +491,7 @@ class BoardWidget(Widget):
             p = Piece(p_type, matrix)
             self.add_widget(p)
             self.pieces.append(p)
-        self.on_size()
+        self.update_layout()
 
     def reset_level(self):
         app = App.get_running_app()
@@ -345,7 +509,6 @@ class EscapeHeroApp(App):
     won = BooleanProperty(False)
 
     def build(self):
-        # Kivy gerencia o armazenamento de forma segura nativamente
         self.store = JsonStore(os.path.join(self.user_data_dir, 'progress.json'))
         self.max_unlocked = self.store.get('progress')['level'] if self.store.exists('progress') else 0
         self.level_names = list(LEVELS.keys())
@@ -358,16 +521,32 @@ class EscapeHeroApp(App):
         return self.sm
 
     def populate_menu(self):
-        grid = self.sm.get_screen('menu').ids.level_grid
-        grid.clear_widgets()
+        from kivy.factory import Factory
+        grid_f = self.sm.get_screen('menu').ids.grid_facil
+        grid_m = self.sm.get_screen('menu').ids.grid_medio
+        grid_d = self.sm.get_screen('menu').ids.grid_dificil
+
+        grid_f.clear_widgets()
+        grid_m.clear_widgets()
+        grid_d.clear_widgets()
+
         for i, lvl_name in enumerate(self.level_names):
-            # Cria botão local e previne recriação de escopo com o lambda
-            btn = Factory.MenuButton(text=lvl_name, size_hint_y=None, height=dp(60))
+            # Formata o nome para ficar mais curto no botão (ex: "Nível 1" ao invés de "Nível 1 (Fácil)")
+            short_name = f"Nível {lvl_name.split()[1]}"
+
+            btn = Factory.MenuButton(text=short_name, size_hint_y=None, height=dp(50))
             if i > self.max_unlocked:
                 btn.disabled = True
             else:
                 btn.bind(on_release=lambda instance, ln=lvl_name: self.start_level(ln))
-            grid.add_widget(btn)
+
+            # Distribui os botões para suas respectivas colunas
+            if "Fácil" in lvl_name:
+                grid_f.add_widget(btn)
+            elif "Médio" in lvl_name:
+                grid_m.add_widget(btn)
+            elif "Difícil" in lvl_name:
+                grid_d.add_widget(btn)
 
     def start_level(self, level_name):
         if self.overlay:
@@ -394,19 +573,18 @@ class EscapeHeroApp(App):
             self.sm.get_screen('game').ids.info_lbl.text = f"Moves: {self.moves}   |   Tempo: {mins:02}:{secs:02}"
 
     def trigger_win(self):
+        from kivy.factory import Factory
         self.won = True
         current_idx = self.level_names.index(self.current_level)
 
-        # Desbloqueia próximo nível
         if current_idx == self.max_unlocked and current_idx < len(self.level_names) - 1:
             self.max_unlocked += 1
             self.store.put('progress', level=self.max_unlocked)
             self.populate_menu()
 
-        # Cria a tela de vitória
         overlay = FloatLayout()
         with overlay.canvas.before:
-            Color(1, 1, 1, 0.85)  # Fundo translúcido
+            Color(1, 1, 1, 0.85)
             Rectangle(pos=self.sm.pos, size=self.sm.size)
 
         box = BoxLayout(orientation='vertical', size_hint=(0.8, 0.5), pos_hint={'center_x': 0.5, 'center_y': 0.5},
@@ -433,8 +611,6 @@ class EscapeHeroApp(App):
         self.sm.get_screen('game').add_widget(overlay)
         self.overlay = overlay
 
-
-from kivy.factory import Factory
 
 if __name__ == "__main__":
     EscapeHeroApp().run()
