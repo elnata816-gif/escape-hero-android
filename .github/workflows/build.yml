@@ -7,58 +7,24 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 60
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout do Código
+        uses: actions/checkout@v4
 
-      # 1. Configurar Java 17 (Padrão ouro atual do Android SDK)
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      # Usando a "Caixa Blindada" Oficial do Buildozer
+      - name: Compilar APK (Via Contêiner Docker)
+        uses: ArtemSBulgakov/buildozer-action@v1
+        id: buildozer
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          command: buildozer android debug
+          buildozer_version: master
 
-      # 2. Configurar Python 3.10
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      # 3. Instalar Dependências do Sistema (Ubuntu 22.04)
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential libtool autoconf automake pkg-config \
-            libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev \
-            zip unzip ffmpeg \
-            libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
-            libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
-
-      # 4. Instalar Buildozer e Dependências
-      - name: Install Buildozer
-        run: |
-          pip install --upgrade pip setuptools wheel virtualenv
-          pip install buildozer cython
-
-      # 5. Limpar Cache Totalmente (v11)
-      - name: Cache Buildozer Global Directory
-        uses: actions/cache@v4
-        with:
-          path: .buildozer
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v11
-
-      # 6. Compilar o APK
-      - name: Build with Buildozer
-        run: |
-          buildozer android debug
-
-      # 7. Salvar o arquivo gerado
-      - name: Upload APK
+      # Salva o arquivo gerado
+      - name: Upload do APK Final
         uses: actions/upload-artifact@v4
         with:
           name: escape-hero-apk
-          path: bin/*.apk
-          if-no-files-found: error
+          # A Action já sabe o nome exato do arquivo que foi criado
+          path: ${{ steps.buildozer.outputs.filename }}
