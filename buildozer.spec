@@ -1,29 +1,30 @@
-[app]
-title = Escape Hero
-package.name = escapehero
-package.domain = org.test
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,txt
-version = 0.1
+name: Build Android APK
 
-# Apenas Python3 e Kivy padrão
-requirements = python3,kivy
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
-orientation = portrait
-android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE
-android.api = 31
-android.minapi = 21
-android.ndk_api = 21
-android.private_storage = True
-android.accept_sdk_license = True
-android.archs = arm64-v8a, armeabi-v7a
-fullscreen = 1
-android.add_packaging_options = "exclude 'META-INF/common.kotlin_module'", "exclude 'META-INF/*.kotlin_module'"
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-# Motor padrão e moderno
-p4a.bootstrap = sdl2
-p4a.branch = master
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
 
-[buildozer]
-log_level = 2
-warn_on_root = 1
+      # 1. Dá permissão total para a pasta, evitando que o Docker bloqueie a criação do APK
+      - name: Ajustar Permissões de Pasta
+        run: chmod -R 777 ${{ github.workspace }}
+
+      # 2. Roda a compilação direto da Imagem Oficial do Kivy
+      - name: Compilar APK (Oficial Kivy Docker)
+        run: docker run --rm -v ${{ github.workspace }}:/home/user/hostcwd kivy/buildozer android debug
+
+      # 3. Salva o arquivo gerado
+      - name: Upload do APK Final
+        uses: actions/upload-artifact@v4
+        with:
+          name: escape-hero-apk
+          path: bin/*.apk
+          if-no-files-found: error
