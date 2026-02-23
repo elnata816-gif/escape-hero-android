@@ -42,15 +42,15 @@ jobs:
       # 4. Instalar Buildozer e Dependências Python
       - name: Install Buildozer & Dependencies
         run: |
-          pip install --upgrade pip
+          pip install --upgrade pip setuptools wheel virtualenv
           pip install buildozer cython==0.29.33
 
-      # 5. Cache do Buildozer (Chave v6 para limpar cache antigo)
+      # 5. Cache do Buildozer (Chave v8 para limpar cache antigo)
       - name: Cache Buildozer Global Directory
         uses: actions/cache@v4
         with:
           path: .buildozer
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v6
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v8
 
       # 6. Compilar o APK
       - name: Build with Buildozer
