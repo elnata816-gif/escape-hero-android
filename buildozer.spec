@@ -27,7 +27,7 @@ orientation = portrait
 # (bool) Se o app deve rodar em tela cheia
 fullscreen = 0
 
-# (list) Permissões necessárias (não precisamos de câmera ou GPS para este jogo)
+# (list) Permissões necessárias
 android.permissions = INTERNET
 
 # (int) Nível da API do Android alvo (33 é o padrão atual recomendado pelo Google)
@@ -36,8 +36,13 @@ android.api = 33
 # (int) Nível mínimo da API suportada
 android.minapi = 21
 
-# (str) Arquitetura do processador (deixe essas para rodar em 99% dos celulares)
-android.archs = arm64-v8a, armeabi-v7a
+# (str) Arquitetura do processador (Removido o espaço após a vírgula para evitar falha no script de build)
+android.archs = arm64-v8a,armeabi-v7a
+
+# --- CONFIGURAÇÃO CRÍTICA PARA O GITHUB ACTIONS ---
+# (bool) Aceitar automaticamente as licenças do SDK do Android. 
+android.accept_sdk_license = True
+
 
 [buildozer]
 # (int) Nível de log no console (2 = debug, bom para ver erros no GitHub)
