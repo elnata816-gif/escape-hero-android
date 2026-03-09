@@ -1,30 +1,45 @@
-name: Build Android APK
+[app]
 
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+# (str) Título do seu aplicativo
+title = Escape Hero
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# (str) Nome do pacote (sem espaços ou caracteres especiais)
+package.name = escapehero
 
-    steps:
-      - name: Checkout do Código
-        uses: actions/checkout@v4
+# (str) Domínio do pacote (usado para identificar o app na loja)
+package.domain = org.elna
 
-      # 1. Dá permissão total para a pasta, evitando que o Docker bloqueie a criação do APK
-      - name: Ajustar Permissões de Pasta
-        run: chmod -R 777 ${{ github.workspace }}
+# (str) Diretório onde está o código fonte (neste caso, na mesma pasta)
+source.dir = .
 
-      # 2. Roda a compilação direto da Imagem Oficial do Kivy
-      - name: Compilar APK (Oficial Kivy Docker)
-        run: docker run --rm -v ${{ github.workspace }}:/home/user/hostcwd kivy/buildozer android debug
+# (list) Extensões de arquivos que devem ser incluídas no APK
+source.include_exts = py,png,jpg,kv,atlas,json
 
-      # 3. Salva o arquivo gerado
-      - name: Upload do APK Final
-        uses: actions/upload-artifact@v4
-        with:
-          name: escape-hero-apk
-          path: bin/*.apk
-          if-no-files-found: error
+# (str) Versão do seu aplicativo
+version = 0.1
+
+# (list) Bibliotecas Python necessárias para rodar o app
+requirements = python3,kivy
+
+# (str) Orientação da tela do celular (portrait = em pé)
+orientation = portrait
+
+# (bool) Se o app deve rodar em tela cheia
+fullscreen = 0
+
+# (list) Permissões necessárias (não precisamos de câmera ou GPS para este jogo)
+android.permissions = INTERNET
+
+# (int) Nível da API do Android alvo (33 é o padrão atual recomendado pelo Google)
+android.api = 33
+
+# (int) Nível mínimo da API suportada
+android.minapi = 21
+
+# (str) Arquitetura do processador (deixe essas para rodar em 99% dos celulares)
+android.archs = arm64-v8a, armeabi-v7a
+
+[buildozer]
+# (int) Nível de log no console (2 = debug, bom para ver erros no GitHub)
+log_level = 2
+warn_on_root = 1
