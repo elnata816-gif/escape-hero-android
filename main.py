@@ -91,9 +91,18 @@ LEVELS = {
     ],
     "Nível 6 (Médio)": [
         (TYPE_HERO, [[0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        (TYPE_S, [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        (TYPE_S, [[0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        (TYPE_S, [[0, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[1, 0, 0, 0],
+                  [0, 0, 0, 0],
+                  [0, 0, 0, 0],
+                  [0, 0, 0, 0],
+                  [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 1],
+                  [0, 0, 0, 0],
+                  [0, 0, 0, 0],
+                  [0, 0, 0, 0],
+                  [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0],
+                  [1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
         (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
         (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0]]),
         (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0]]),
@@ -105,8 +114,14 @@ LEVELS = {
         (TYPE_HERO, [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
         (TYPE_V, [[0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
         (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 0],
+                  [0, 0, 0, 0],
+                  [0, 0, 0, 0],
+                  [0, 0, 1, 0],
+                  [0, 0, 0, 0]]),
         (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
-        (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        (TYPE_S, [[0, 0, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
         (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]]),
         (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 1]]),
         (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0]]),
@@ -148,7 +163,6 @@ LEVELS = {
         (TYPE_V, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 0]]),
         (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0]]),
         (TYPE_S, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]),
-        (TYPE_H, [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 1, 0]]),
     ],
     "Nível 11 (Difícil)": [
         (TYPE_HERO, [[0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]),
@@ -400,6 +414,11 @@ class Piece(Widget):
 
     def on_touch_down(self, touch):
         app = App.get_running_app()
+
+        # INÍCIO DO INTERTRAVAMENTO: Se a flag 'is_preview' for True, bloqueia a interação física
+        if app.is_preview:
+            return False
+
         if not app.won and self.collide_point(*touch.pos):
             touch.grab(self)
             self.dragging = True
@@ -495,7 +514,8 @@ class BoardWidget(Widget):
 
     def reset_level(self):
         app = App.get_running_app()
-        app.start_level(app.current_level)
+        # MODIFICAÇÃO: Passa o estado atual da flag is_preview para manter o bloqueio
+        app.start_level(app.current_level, preview=app.is_preview)
 
     def check_win(self):
         for p in self.pieces:
@@ -507,6 +527,8 @@ class EscapeHeroApp(App):
     moves = NumericProperty(0)
     time_seconds = NumericProperty(0)
     won = BooleanProperty(False)
+    # DEFINIÇÃO DO ESTADO DE VISUALIZAÇÃO
+    is_preview = BooleanProperty(False)
 
     def build(self):
         self.store = JsonStore(os.path.join(self.user_data_dir, 'progress.json'))
@@ -531,16 +553,24 @@ class EscapeHeroApp(App):
         grid_d.clear_widgets()
 
         for i, lvl_name in enumerate(self.level_names):
-            # Formata o nome para ficar mais curto no botão (ex: "Nível 1" ao invés de "Nível 1 (Fácil)")
             short_name = f"Nível {lvl_name.split()[1]}"
 
-            btn = Factory.MenuButton(text=short_name, size_hint_y=None, height=dp(50))
-            if i > self.max_unlocked:
-                btn.disabled = True
-            else:
-                btn.bind(on_release=lambda instance, ln=lvl_name: self.start_level(ln))
+            # Lógica para verificar se o nível está bloqueado na memória
+            is_locked = i > self.max_unlocked
 
-            # Distribui os botões para suas respectivas colunas
+            if is_locked:
+                short_name += " (Vizu)"
+
+            btn = Factory.MenuButton(text=short_name, size_hint_y=None, height=dp(50))
+
+            # Ajuste de layout visual para indicar que o botão leva a um preview
+            if is_locked:
+                btn.background_color = (0.8, 0.8, 0.8, 0.6)
+                btn.color = (0.5, 0.5, 0.5, 1)
+
+            # Botão nunca é desativado. Passamos a flag `preview` para o controlador de cena
+            btn.bind(on_release=lambda instance, ln=lvl_name, lock=is_locked: self.start_level(ln, preview=lock))
+
             if "Fácil" in lvl_name:
                 grid_f.add_widget(btn)
             elif "Médio" in lvl_name:
@@ -548,7 +578,7 @@ class EscapeHeroApp(App):
             elif "Difícil" in lvl_name:
                 grid_d.add_widget(btn)
 
-    def start_level(self, level_name):
+    def start_level(self, level_name, preview=False):
         if self.overlay:
             self.sm.get_screen('game').remove_widget(self.overlay)
             self.overlay = None
@@ -557,22 +587,36 @@ class EscapeHeroApp(App):
         self.moves = 0
         self.time_seconds = 0
         self.won = False
+        self.is_preview = preview
 
         game_screen = self.sm.get_screen('game')
         game_screen.ids.title_lbl.text = level_name
-        game_screen.ids.info_lbl.text = "Moves: 0   |   Tempo: 00:00"
+
+        # Inserção de feedback textual via KV Markup para alertar o usuário sobre o bloqueio mecânico
+        if preview:
+            game_screen.ids.info_lbl.markup = True
+            game_screen.ids.info_lbl.text = "[color=e74c3c]MODO VISUALIZAÇÃO (BLOQUEADO)[/color]"
+        else:
+            game_screen.ids.info_lbl.markup = False
+            game_screen.ids.info_lbl.text = "Moves: 0   |   Tempo: 00:00"
+
         game_screen.ids.board.load_level(level_name)
 
         self.sm.current = 'game'
 
     def update_timer(self, dt):
-        if self.sm.current == 'game' and not self.won:
+        # Condição de guarda: O clock interno ignora a contagem se a flag is_preview for ativa
+        if self.sm.current == 'game' and not self.won and not self.is_preview:
             self.time_seconds += 1
             mins = self.time_seconds // 60
             secs = self.time_seconds % 60
             self.sm.get_screen('game').ids.info_lbl.text = f"Moves: {self.moves}   |   Tempo: {mins:02}:{secs:02}"
 
     def trigger_win(self):
+        # Proteção adicional de sistema
+        if self.is_preview:
+            return
+
         from kivy.factory import Factory
         self.won = True
         current_idx = self.level_names.index(self.current_level)
